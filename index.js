@@ -9,9 +9,10 @@ mongoose
   .connect(
     'mongodb+srv://ignaciomanganaro22:Reformednacho90@mernstack.vxtmp.mongodb.net/?retryWrites=true&w=majority&appName=MERNstack'
   )
-  .then(() => {
-    console.log('DB CONNECTED')
-    app.listen(5000, () => console.log('App listening port 5000'))
-  })
+  .then(() =>
+    app.listen('5000', () =>
+      console.log('App listening to port 5000. DB CONNECTED SUCCESFULLY')
+    )
+  )
 
 module.exports = app
