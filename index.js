@@ -1,18 +1,37 @@
-require('dotenv').config()
-const express = require('express')
-const mongoose = require('mongoose')
+import 'dotenv/config'
+import express from 'express'
+import mongoose from 'mongoose'
+import Course from './models/CourseSchema.js'
+import connectDB from './DB.js'
+
 const app = express()
+
+app.use(express.json())
 
 app.get('/', (req, res) => res.send('Express on Previewww'))
 
-mongoose
-  .connect(
-    'mongodb+srv://ignaciomanganaro22:Reformednacho90@mernstack.vxtmp.mongodb.net/?retryWrites=true&w=majority&appName=MERNstack'
-  )
-  .then(() =>
-    app.listen('5000', () =>
-      console.log('App listening to port 5000. DB CONNECTED SUCCESFULLY')
-    )
-  )
+app.get('/courses', async (req, res) => {
+  const cursos = await Course.find({})
+  res.status(200).json(cursos)
+})
 
-module.exports = app
+app.post('/courses', async (req, res) => {
+  const { body } = req
+  const { title, price, description } = body
+  const cursoExiste = await Course.findOne({ title })
+
+  try {
+    if (cursoExiste || title === '' || price === '' || description === '')
+      return res.status(500).json({ message: 'All fields must be completed' })
+    const nuevoCurso = new Course({ title, price, description })
+    const savedCurso = await nuevoCurso.save()
+    res.status(201).json({ ok: true, data: savedCurso })
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({ ok: false, error })
+  }
+})
+
+connectDB()
+
+export default app
