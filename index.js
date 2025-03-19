@@ -1,14 +1,30 @@
 import 'dotenv/config'
-import cors from "cors"
+import cors from 'cors'
 import express from 'express'
 import mongoose from 'mongoose'
 import Course from './models/CourseSchema.js'
 import connectDB from './DB.js'
+import passport from 'passport'
 
 const app = express()
 
 app.use(express.json())
 app.use(cors())
+app.use(passport.initialize())
+
+app.get(
+  '/auth/google',
+  passport.authenticate('google', { scope: ['email', 'profile'] })
+)
+
+app.get(
+  '/auth/google/callback',
+  passport.authenticate('google', { failureRedirect: 'http://localhost:3000/login' }),
+  function (req, res) {
+    // Successful authentication, redirect home.
+    res.redirect('http://localhost:3000/profile')
+  }
+)
 
 app.get('/', (req, res) => res.send('Express on Previewww'))
 
