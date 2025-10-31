@@ -4,18 +4,6 @@ const ExtractJwt = require('passport-jwt').ExtractJwt
 const passport = require('passport')
 const User = require('../models/UserSchema.js')
 
-//Jwt Auth/Strategy
-
-// const jwtExtractor = (req) => {
-//   let token = null
-//   if (req && req.headers['authorization']) {
-//     token = req.headers['authorization'].split(' ')[1]
-//   }
-//   console.log({ token })
-//   console.log('estoy pasando por aca')
-//   return token
-// }
-
 const options = {
   jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
   secretOrKey: 'clavesecreta'
@@ -23,7 +11,7 @@ const options = {
 
 const strategyJwt = new JwtStrategy(options, async (jwt_payload, done) => {
   try {
-    const foundUser = await User.findOne({ _id: jwt_payload.sub })
+    const foundUser = await User.findById(jwt_payload.sub)
     if (foundUser) {
       done(null, foundUser)
     } else {
@@ -53,16 +41,18 @@ const strategyGoogle = new GoogleStrategy(googleOptions, async function (
 ) {
   try {
     const foundUser = await User.findOne({ googleId: profile.id })
-    if (!!foundUser) {
+    if (foundUser) {
+      console.log(foundUser)
       return done(null, foundUser)
     } else {
       const createdUser = await User.create({
-        googleId: profile.id,
-        firstname: profile._json.given_name,
-        lastname: profile._json.family_name,
-        pictureUrl: profile._json.picture,
-        email: profile._json.email
+        googleId: profile.id || '',
+        firstname: profile._json?.given_name || '',
+        lastname: profile._json?.family_name || '',
+        pictureUrl: profile._json?.picture || '',
+        email: profile._json?.email || ''
       })
+      console.log('creando usuario')
       return done(null, createdUser)
     }
   } catch (error) {
@@ -71,20 +61,20 @@ const strategyGoogle = new GoogleStrategy(googleOptions, async function (
   }
 })
 
-passport.serializeUser(function (user, done) {
-  console.log('SERIALIZE')
-  done(null, user._id)
-})
+// passport.serializeUser(function (user, done) {
+//   console.log('SERIALIZE')
+//   done(null, user._id)
+// })
 
-passport.deserializeUser(async function (id, done) {
-  console.log('DESERIALIZE')
-  try {
-    const foundUser = await User.findById(id)
-    done(null, foundUser)
-  } catch (error) {
-    done(error, null)
-  }
-})
+// passport.deserializeUser(async function (id, done) {
+//   console.log('DESERIALIZE')
+//   try {
+//     const foundUser = await User.findById(id)
+//     done(null, foundUser)
+//   } catch (error) {
+//     done(error, null)
+//   }
+// })
 
 module.exports = (passport) => {
   passport.use(strategyJwt)
